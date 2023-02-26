@@ -1,9 +1,6 @@
-import dotenv from 'dotenv';
-import { Server } from './server';
-import { Database } from './database';
-
-// Load environment variables from .env file
-dotenv.config();
+import './core/Env';
+import Database from './core/Database';
+import Server from './core/Server';
 
 // Create database instance
 const db = Database.getInstance();
