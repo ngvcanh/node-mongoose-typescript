@@ -19,17 +19,20 @@ export class Server {
   private readonly app: Express;
   private readonly db: Database;
 
-  private httpServer: http.Server | undefined;
+  private httpServer: http.Server;
   private httpsServer: https.Server | undefined;
 
   constructor(db: Database) {
     const { PORT, SSL_PORT } = process.env;
     this.port = parseInt(PORT || '4000');
     this.sslPort = parseInt(SSL_PORT || '443');
-    this.app = express();
+
     this.db = db;
+    this.app = express();
     this.httpServer = http.createServer(this.app);
+
     this.configureMiddleware();
+    this.configureRoutes();
   }
 
   private configureMiddleware() {
@@ -39,13 +42,15 @@ export class Server {
     this.app.use(helmet());
   }
 
+  private configureRoutes() {
+    const router = configureRoutes(this.db);
+    this.app.use('/api', router);
+  }
+
   public async start(sslConfig?: ServerSSLConfiguration): Promise<void> {
     try {
       await this.db.connect();
       console.log("[ SERVER ] Connected to database");
-
-      const router = configureRoutes(this.db);
-      this.app.use('/api', router);
 
       this.httpServer.listen(this.port, () => {
         console.log(`[ SERVER ] HTTP server listening on port`, this.port);
@@ -69,12 +74,8 @@ export class Server {
   }
 
   public stop(): void {
-    if (this.httpServer) {
-      this.httpServer.close();
-    }
-    if (this.httpsServer) {
-      this.httpsServer.close();
-    }
+    this.httpServer.close();
+    this.httpsServer?.close();
     console.log("[ SERVER ] Server stopped");
   }
 }
