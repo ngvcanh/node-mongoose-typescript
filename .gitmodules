@@ -1,0 +1,3 @@
+[submodule "@serv-ts/express"]
+	path = packages/@serv-ts/express
+	url = git@github.com:serv-ts/express.git
